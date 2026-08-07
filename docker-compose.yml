@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulsecrm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pulsecrm
+      POSTGRES_PASSWORD: pulsecrm
+      POSTGRES_DB: pulsecrm
+    ports:
+      - '5433:5432'
+    volumes:
+      - pulsecrm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pulsecrm -d pulsecrm']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pulsecrm-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - pulsecrm_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pulsecrm_postgres_data:
+  pulsecrm_redis_data:
