@@ -5,9 +5,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Role, User } from '@prisma/client';
+import { InviteStatus, Role, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { AuthUserDto, TokenPairDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
@@ -64,6 +65,54 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, user: this.toAuthUser(user) };
+  }
+
+  async acceptInvite(
+    dto: AcceptInviteDto,
+  ): Promise<{ user: AuthUserDto } & TokenPairDto> {
+    const invite = await this.prisma.invite.findUnique({
+      where: { token: dto.token },
+    });
+
+    if (
+      !invite ||
+      invite.status !== InviteStatus.PENDING ||
+      invite.expiresAt < new Date()
+    ) {
+      throw new UnauthorizedException('Invalid or expired invite');
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: invite.email },
+    });
+    if (existingUser) {
+      throw new ConflictException('Email is already in use');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
+
+    const user = await this.prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          organizationId: invite.organizationId,
+          email: invite.email,
+          passwordHash,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          role: invite.role,
+        },
+      });
+
+      await tx.invite.update({
+        where: { id: invite.id },
+        data: { status: InviteStatus.ACCEPTED, acceptedAt: new Date() },
+      });
+
+      return createdUser;
+    });
 
     const tokens = await this.issueTokens(user);
     return { ...tokens, user: this.toAuthUser(user) };

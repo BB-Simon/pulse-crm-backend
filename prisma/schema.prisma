@@ -33,6 +33,12 @@ enum ActivityType {
   NOTE
 }
 
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
 // ─────────────────────────────────────────────
 // Tenant root
 // ─────────────────────────────────────────────
@@ -51,6 +57,7 @@ model Organization {
   pipelineStages PipelineStage[]
   activities     Activity[]
   tasks          Task[]
+  invites        Invite[]
 }
 
 // ─────────────────────────────────────────────
@@ -75,8 +82,33 @@ model User {
   ownedDeals       Deal[]     @relation("DealOwner")
   loggedActivities Activity[] @relation("ActivityAuthor")
   assignedTasks    Task[]     @relation("TaskAssignee")
+  sentInvites      Invite[]   @relation("InviteSender")
 
   @@index([organizationId, role])
+}
+
+// ─────────────────────────────────────────────
+// Team invites
+// ─────────────────────────────────────────────
+
+model Invite {
+  id             String       @id @default(cuid())
+  organizationId String
+  email          String
+  role           Role         @default(REP)
+  token          String       @unique
+  status         InviteStatus @default(PENDING)
+  invitedById    String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InviteSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, email])
+  @@index([organizationId, status])
 }
 
 // ─────────────────────────────────────────────

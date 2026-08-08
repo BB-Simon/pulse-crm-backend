@@ -8,6 +8,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { AuthResponseDto, TokenPairDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -46,5 +47,15 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Invalid or expired refresh token' })
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto.refreshToken);
+  }
+
+  @Post('accept-invite')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Complete signup for an invited user' })
+  @ApiOkResponse({ type: AuthResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired invite' })
+  @ApiConflictResponse({ description: 'Email is already in use' })
+  acceptInvite(@Body() dto: AcceptInviteDto) {
+    return this.authService.acceptInvite(dto);
   }
 }

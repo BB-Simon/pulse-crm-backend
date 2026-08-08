@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { MailModule } from './modules/mail/mail.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UsersModule } from './modules/users/users.module';
@@ -20,6 +21,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
     }),
     PrismaModule,
     QueueModule,
+    MailModule,
     AuthModule,
     OrganizationsModule,
     UsersModule,
