@@ -33,7 +33,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const errorBody = {
       statusCode: status,
       timestamp: new Date().toISOString(),
-      path: request.url,
+      // originalUrl survives Express sub-router mounting (e.g. the global
+      // prefix + wildcard-mounted middleware); request.url can be rewritten
+      // to a path relative to that mount point by the time an error reaches here.
+      path: request.originalUrl ?? request.url,
       method: request.method,
       message,
     };

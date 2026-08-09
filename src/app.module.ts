@@ -1,11 +1,18 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ReadOnlyModeMiddleware } from './common/middleware/read-only-mode.middleware';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UsersModule } from './modules/users/users.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
@@ -23,6 +30,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
     QueueModule,
     MailModule,
     AuthModule,
+    BillingModule,
     OrganizationsModule,
     UsersModule,
     ContactsModule,
@@ -31,6 +39,19 @@ import { TasksModule } from './modules/tasks/tasks.module';
     TasksModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ReadOnlyModeMiddleware],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Auth (needed to authenticate at all) and Billing (needed to fix the
+    // lapsed subscription that triggered read-only mode) must stay reachable
+    // even while the rest of the API is locked to reads.
+    consumer
+      .apply(ReadOnlyModeMiddleware)
+      .exclude(
+        { path: 'auth/*path', method: RequestMethod.ALL },
+        { path: 'billing/*path', method: RequestMethod.ALL },
+      )
+      .forRoutes('*path');
+  }
+}

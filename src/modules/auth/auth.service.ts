@@ -5,8 +5,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InviteStatus, Role, User } from '@prisma/client';
+import {
+  InviteStatus,
+  Plan,
+  Role,
+  SubscriptionStatus,
+  User,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PLAN_CATALOG } from '../billing/plan-catalog';
 import { PrismaService } from '../prisma/prisma.service';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { AuthUserDto, TokenPairDto } from './dto/auth-response.dto';
@@ -17,6 +24,7 @@ import { JwtPayload } from './types/jwt-payload.interface';
 const BCRYPT_SALT_ROUNDS = 12;
 const DEFAULT_ACCESS_EXPIRES_IN_SECONDS = 900; // 15m
 const DEFAULT_REFRESH_EXPIRES_IN_SECONDS = 604800; // 7d
+const TRIAL_PERIOD_DAYS = 14;
 
 @Injectable()
 export class AuthService {
@@ -40,6 +48,20 @@ export class AuthService {
     const user = await this.prisma.$transaction(async (tx) => {
       const organization = await tx.organization.create({
         data: { name: dto.organizationName, slug },
+      });
+
+      const trialPlan = PLAN_CATALOG[Plan.STARTER];
+      await tx.subscription.create({
+        data: {
+          organizationId: organization.id,
+          plan: Plan.STARTER,
+          status: SubscriptionStatus.TRIALING,
+          seatLimit: trialPlan.seatLimit,
+          contactLimit: trialPlan.contactLimit,
+          currentPeriodEnd: new Date(
+            Date.now() + TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000,
+          ),
+        },
       });
 
       return tx.user.create({

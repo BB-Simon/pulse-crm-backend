@@ -39,6 +39,22 @@ enum InviteStatus {
   REVOKED
 }
 
+enum Plan {
+  STARTER
+  GROWTH
+  SCALE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
 // ─────────────────────────────────────────────
 // Tenant root
 // ─────────────────────────────────────────────
@@ -58,6 +74,7 @@ model Organization {
   activities     Activity[]
   tasks          Task[]
   invites        Invite[]
+  subscription   Subscription?
 }
 
 // ─────────────────────────────────────────────
@@ -109,6 +126,28 @@ model Invite {
 
   @@index([organizationId, email])
   @@index([organizationId, status])
+}
+
+// ─────────────────────────────────────────────
+// Billing / Subscriptions
+// ─────────────────────────────────────────────
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  organizationId       String             @unique
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  plan                 Plan               @default(STARTER)
+  status               SubscriptionStatus @default(TRIALING)
+  seatLimit            Int
+  contactLimit         Int
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
 }
 
 // ─────────────────────────────────────────────
