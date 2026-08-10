@@ -14,6 +14,7 @@ import {
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PLAN_CATALOG } from '../billing/plan-catalog';
+import { DEFAULT_PIPELINE_STAGES } from '../deals/default-pipeline-stages';
 import { PrismaService } from '../prisma/prisma.service';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { AuthUserDto, TokenPairDto } from './dto/auth-response.dto';
@@ -62,6 +63,16 @@ export class AuthService {
             Date.now() + TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000,
           ),
         },
+      });
+
+      await tx.pipelineStage.createMany({
+        data: DEFAULT_PIPELINE_STAGES.map((stage) => ({
+          organizationId: organization.id,
+          name: stage.name,
+          order: stage.order,
+          isWon: stage.isWon,
+          isLost: stage.isLost,
+        })),
       });
 
       return tx.user.create({

@@ -7,6 +7,7 @@ import {
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CommonModule } from './common/common.module';
 import { ReadOnlyModeMiddleware } from './common/middleware/read-only-mode.middleware';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { QueueModule } from './modules/queue/queue.module';
@@ -15,6 +16,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UsersModule } from './modules/users/users.module';
+import { CompaniesModule } from './modules/companies/companies.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { DealsModule } from './modules/deals/deals.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
@@ -26,6 +28,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    CommonModule,
     PrismaModule,
     QueueModule,
     MailModule,
@@ -33,6 +36,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
     BillingModule,
     OrganizationsModule,
     UsersModule,
+    CompaniesModule,
     ContactsModule,
     DealsModule,
     ActivitiesModule,
