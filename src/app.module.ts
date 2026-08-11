@@ -29,6 +29,7 @@ import { CalendarModule } from './modules/calendar/calendar.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { PublicApiModule } from './modules/public-api/public-api.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { PublicApiModule } from './modules/public-api/public-api.module';
     WebhooksModule,
     ApiKeysModule,
     PublicApiModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, ReadOnlyModeMiddleware],
