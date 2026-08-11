@@ -10,6 +10,7 @@ import { OrgMembershipService } from '../../common/services/org-membership.servi
 import { ContactsService } from '../contacts/contacts.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { WebhookDeliveryService } from '../webhooks/webhook-delivery.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { DealListResponseDto } from './dto/deal-list-response.dto';
@@ -27,6 +28,7 @@ export class DealsService {
     private readonly contactsService: ContactsService,
     private readonly notificationsService: NotificationsService,
     private readonly webhookDeliveryService: WebhookDeliveryService,
+    private readonly realtimeGateway: RealtimeGateway,
   ) {}
 
   async list(
@@ -194,6 +196,17 @@ export class DealsService {
         fromStage: fromStage?.name ?? existing.pipelineStageId,
         toStage: stage.name,
         changedByUserId: user.id,
+      });
+      this.realtimeGateway.broadcastDealStageChanged(user.organizationId, {
+        dealId: deal.id,
+        dealTitle: deal.title,
+        dealOwnerId: deal.ownerId,
+        fromStageId: existing.pipelineStageId,
+        fromStageName: fromStage?.name ?? existing.pipelineStageId,
+        toStageId: stage.id,
+        toStageName: stage.name,
+        changedByUserId: user.id,
+        changedAt: deal.updatedAt.toISOString(),
       });
     }
 

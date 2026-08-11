@@ -30,6 +30,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { PublicApiModule } from './modules/public-api/public-api.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     ApiKeysModule,
     PublicApiModule,
     AnalyticsModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService, ReadOnlyModeMiddleware],
