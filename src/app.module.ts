@@ -22,6 +22,7 @@ import { DealsModule } from './modules/deals/deals.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     ActivitiesModule,
     TasksModule,
     DashboardModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService, ReadOnlyModeMiddleware],
