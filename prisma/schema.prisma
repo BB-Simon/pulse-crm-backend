@@ -83,6 +83,7 @@ model Organization {
   subscription   Subscription?
   notifications  Notification[]
   webhooks       Webhook[]
+  apiKeys        ApiKey[]
 }
 
 // ─────────────────────────────────────────────
@@ -110,6 +111,7 @@ model User {
   sentInvites      Invite[]       @relation("InviteSender")
   notifications    Notification[]
   createdWebhooks  Webhook[]      @relation("WebhookCreator")
+  createdApiKeys   ApiKey[]       @relation("ApiKeyCreator")
 
   @@index([organizationId, role])
 }
@@ -182,6 +184,30 @@ model WebhookDelivery {
   webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([webhookId, deliveredAt])
+}
+
+// ─────────────────────────────────────────────
+// Public API keys
+// ─────────────────────────────────────────────
+
+model ApiKey {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  /// Safe-to-display prefix of the raw key (e.g. "pcrm_3f9a1c78..."). The
+  /// full key is shown only once, at creation, and cannot be recovered.
+  keyPreview     String
+  /// SHA-256 hash of the full raw key, used to authenticate requests.
+  hashedKey      String    @unique
+  createdById    String
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("ApiKeyCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
 }
 
 // ─────────────────────────────────────────────

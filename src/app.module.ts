@@ -27,6 +27,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { SearchModule } from './modules/search/search.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { ApiKeysModule } from './modules/api-keys/api-keys.module';
+import { PublicApiModule } from './modules/public-api/public-api.module';
 
 @Module({
   imports: [
@@ -53,6 +55,8 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     SearchModule,
     CalendarModule,
     WebhooksModule,
+    ApiKeysModule,
+    PublicApiModule,
   ],
   controllers: [AppController],
   providers: [AppService, ReadOnlyModeMiddleware],
