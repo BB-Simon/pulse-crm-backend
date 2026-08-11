@@ -10,6 +10,7 @@ import { OrgMembershipService } from '../../common/services/org-membership.servi
 import { ContactsService } from '../contacts/contacts.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { WebhookDeliveryService } from '../webhooks/webhook-delivery.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { DealListResponseDto } from './dto/deal-list-response.dto';
 import { DealQueryDto } from './dto/deal-query.dto';
@@ -25,6 +26,7 @@ export class DealsService {
     private readonly orgMembership: OrgMembershipService,
     private readonly contactsService: ContactsService,
     private readonly notificationsService: NotificationsService,
+    private readonly webhookDeliveryService: WebhookDeliveryService,
   ) {}
 
   async list(
@@ -192,6 +194,16 @@ export class DealsService {
         fromStage: fromStage?.name ?? existing.pipelineStageId,
         toStage: stage.name,
         changedByUserId: user.id,
+      });
+    }
+
+    if (stage.isWon && existing.status !== DealStatus.WON) {
+      await this.webhookDeliveryService.enqueueDealWon(user.organizationId, {
+        dealId: deal.id,
+        title: deal.title,
+        value: Number(deal.value),
+        contactId: deal.contactId,
+        wonAt: (deal.closedAt ?? new Date()).toISOString(),
       });
     }
 

@@ -26,6 +26,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { SearchModule } from './modules/search/search.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CalendarModule } from './modules/calendar/calendar.module';
     DashboardModule,
     SearchModule,
     CalendarModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService, ReadOnlyModeMiddleware],
