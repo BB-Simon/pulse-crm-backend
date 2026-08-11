@@ -25,6 +25,7 @@ import { ActivitiesModule } from './modules/activities/activities.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { SearchModule } from './modules/search/search.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SearchModule } from './modules/search/search.module';
     TasksModule,
     DashboardModule,
     SearchModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [AppService, ReadOnlyModeMiddleware],
