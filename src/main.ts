@@ -1,28 +1,13 @@
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { configureApp } from './app.setup';
 import { PublicApiModule } from './modules/public-api/public-api.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
-  // /public/v1/* is a separate API surface (API-key auth, not user JWT) and
-  // stays unprefixed — controllers there declare their full path themselves.
-  app.setGlobalPrefix('api/v1', {
-    exclude: [{ path: 'public/v1/*path', method: RequestMethod.ALL }],
-  });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-
-  app.useGlobalFilters(new AllExceptionsFilter());
+  configureApp(app);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('PulseCRM API')
