@@ -7,6 +7,7 @@ import { Contact, Prisma, Role } from '@prisma/client';
 import { buildPaginationMeta } from '../../common/dto/pagination-meta.dto';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { OrgMembershipService } from '../../common/services/org-membership.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContactListResponseDto } from './dto/contact-list-response.dto';
 import { ContactQueryDto } from './dto/contact-query.dto';
@@ -19,6 +20,7 @@ export class ContactsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly orgMembership: OrgMembershipService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async list(
@@ -79,6 +81,15 @@ export class ContactsService {
         tags: dto.tags ?? [],
       },
     });
+
+    await this.notificationsService.enqueueLeadAssigned({
+      organizationId: user.organizationId,
+      contactId: contact.id,
+      contactName: `${contact.firstName} ${contact.lastName}`,
+      assignedToUserId: ownerId,
+      assignedByUserId: user.id,
+    });
+
     return this.toResponseDto(contact);
   }
 

@@ -134,6 +134,14 @@ export class TasksService {
       completedAt = dto.completed ? new Date() : null;
     }
 
+    // Changing the due date or completion state can move the task in or out
+    // of "overdue" — clear the notified marker so the cron sweep re-evaluates
+    // it instead of treating it as already notified forever.
+    const shouldResetOverdueNotified =
+      (dto.dueDate !== undefined &&
+        new Date(dto.dueDate).getTime() !== existing.dueDate.getTime()) ||
+      (dto.completed !== undefined && dto.completed !== existing.completed);
+
     const task = await this.prisma.task.update({
       where: { id },
       data: {
@@ -149,6 +157,7 @@ export class TasksService {
         ...(dto.completed !== undefined ? { completed: dto.completed } : {}),
         ...(completedAt !== undefined ? { completedAt } : {}),
         ...(assigneeId !== undefined ? { assigneeId } : {}),
+        ...(shouldResetOverdueNotified ? { overdueNotifiedAt: null } : {}),
       },
     });
     return this.toResponseDto(task);

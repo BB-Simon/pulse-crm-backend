@@ -8,6 +8,7 @@ import { buildPaginationMeta } from '../../common/dto/pagination-meta.dto';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { OrgMembershipService } from '../../common/services/org-membership.service';
 import { ContactsService } from '../contacts/contacts.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { DealListResponseDto } from './dto/deal-list-response.dto';
@@ -23,6 +24,7 @@ export class DealsService {
     private readonly prisma: PrismaService,
     private readonly orgMembership: OrgMembershipService,
     private readonly contactsService: ContactsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async list(
@@ -162,7 +164,7 @@ export class DealsService {
     id: string,
     dto: MoveDealStageDto,
   ): Promise<DealResponseDto> {
-    await this.getVisibleOrThrow(user, id);
+    const existing = await this.getVisibleOrThrow(user, id);
     const stage = await this.resolvePipelineStage(
       user.organizationId,
       dto.pipelineStageId,
@@ -177,6 +179,22 @@ export class DealsService {
         closedAt: status !== DealStatus.OPEN ? new Date() : null,
       },
     });
+
+    if (existing.pipelineStageId !== stage.id) {
+      const fromStage = await this.prisma.pipelineStage.findUnique({
+        where: { id: existing.pipelineStageId },
+      });
+      await this.notificationsService.enqueueDealStageChanged({
+        organizationId: user.organizationId,
+        dealId: deal.id,
+        dealTitle: deal.title,
+        dealOwnerId: deal.ownerId,
+        fromStage: fromStage?.name ?? existing.pipelineStageId,
+        toStage: stage.name,
+        changedByUserId: user.id,
+      });
+    }
+
     return this.toResponseDto(deal);
   }
 
