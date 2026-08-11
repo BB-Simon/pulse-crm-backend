@@ -34,14 +34,19 @@ import { ContactListResponseDto } from './dto/contact-list-response.dto';
 import { ContactQueryDto } from './dto/contact-query.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
 import { CreateContactDto } from './dto/create-contact.dto';
+import { LeadScoreResponseDto } from './dto/lead-score-response.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { LeadScoringService } from './lead-scoring.service';
 
 @ApiTags('contacts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('contacts')
 export class ContactsController {
-  constructor(private readonly contactsService: ContactsService) {}
+  constructor(
+    private readonly contactsService: ContactsService,
+    private readonly leadScoringService: LeadScoringService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -104,6 +109,21 @@ export class ContactsController {
     @Body() dto: UpdateContactDto,
   ): Promise<ContactResponseDto> {
     return this.contactsService.update(user, id, dto);
+  }
+
+  @Post(':id/score')
+  @ApiOperation({
+    summary:
+      'Score this contact as a lead (0-100) via Claude, based on their activity history. Cached on the contact; call again to manually re-score.',
+  })
+  @ApiOkResponse({ type: LeadScoreResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiNotFoundResponse({ description: 'Contact not found' })
+  scoreContact(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<LeadScoreResponseDto> {
+    return this.leadScoringService.scoreContact(user, id);
   }
 
   @Delete(':id')

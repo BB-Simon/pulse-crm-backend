@@ -10,6 +10,10 @@ export class ContactResponseDto {
   @ApiPropertyOptional({ nullable: true }) email: string | null;
   @ApiPropertyOptional({ nullable: true }) phone: string | null;
   @ApiProperty({ type: [String] }) tags: string[];
+  @ApiPropertyOptional({ nullable: true, example: 72 }) leadScore:
+    number | null;
+  @ApiPropertyOptional({ nullable: true }) leadScoreRationale: string | null;
+  @ApiPropertyOptional({ nullable: true }) leadScoredAt: Date | null;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 }

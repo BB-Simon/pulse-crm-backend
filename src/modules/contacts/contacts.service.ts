@@ -188,6 +188,9 @@ export class ContactsService {
       email: contact.email,
       phone: contact.phone,
       tags: contact.tags,
+      leadScore: contact.leadScore,
+      leadScoreRationale: contact.leadScoreRationale,
+      leadScoredAt: contact.leadScoredAt,
       createdAt: contact.createdAt,
       updatedAt: contact.updatedAt,
     };

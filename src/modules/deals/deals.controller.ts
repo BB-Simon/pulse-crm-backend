@@ -25,21 +25,29 @@ import {
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
+import { DealSummaryService } from './deal-summary.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { DealListResponseDto } from './dto/deal-list-response.dto';
 import { DealQueryDto } from './dto/deal-query.dto';
 import { DealResponseDto } from './dto/deal-response.dto';
+import { DealSummaryResponseDto } from './dto/deal-summary-response.dto';
+import { DraftFollowUpResponseDto } from './dto/draft-follow-up-response.dto';
 import { MoveDealStageDto } from './dto/move-deal-stage.dto';
 import { PipelineStageResponseDto } from './dto/pipeline-stage-response.dto';
 import { UpdateDealDto } from './dto/update-deal.dto';
 import { DealsService } from './deals.service';
+import { FollowUpDraftService } from './follow-up-draft.service';
 
 @ApiTags('deals')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('deals')
 export class DealsController {
-  constructor(private readonly dealsService: DealsService) {}
+  constructor(
+    private readonly dealsService: DealsService,
+    private readonly followUpDraftService: FollowUpDraftService,
+    private readonly dealSummaryService: DealSummaryService,
+  ) {}
 
   @Get('pipeline-stages')
   @ApiOperation({
@@ -123,6 +131,36 @@ export class DealsController {
     @Body() dto: MoveDealStageDto,
   ): Promise<DealResponseDto> {
     return this.dealsService.moveStage(user, id, dto);
+  }
+
+  @Post(':id/draft-followup')
+  @ApiOperation({
+    summary:
+      "Draft a follow-up email for this deal via Claude, based on the contact's info, recent activity, and the deal's stage. Not persisted — edit as needed, then log it yourself via POST /activities.",
+  })
+  @ApiOkResponse({ type: DraftFollowUpResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiNotFoundResponse({ description: 'Deal not found' })
+  draftFollowUp(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<DraftFollowUpResponseDto> {
+    return this.followUpDraftService.draftFollowUp(user, id);
+  }
+
+  @Post(':id/summary')
+  @ApiOperation({
+    summary:
+      'Summarize this deal\'s full activity history into a short "catch me up" paragraph via Claude, for the top of the Deal detail view.',
+  })
+  @ApiOkResponse({ type: DealSummaryResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiNotFoundResponse({ description: 'Deal not found' })
+  summarizeDeal(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<DealSummaryResponseDto> {
+    return this.dealSummaryService.summarizeDeal(user, id);
   }
 
   @Delete(':id')

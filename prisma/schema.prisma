@@ -202,17 +202,21 @@ model Company {
 }
 
 model Contact {
-  id             String   @id @default(cuid())
-  organizationId String
-  ownerId        String
-  companyId      String?
-  firstName      String
-  lastName       String
-  email          String?
-  phone          String?
-  tags           String[] @default([])
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  organizationId     String
+  ownerId            String
+  companyId          String?
+  firstName          String
+  lastName           String
+  email              String?
+  phone              String?
+  tags               String[]  @default([])
+  /// Cached AI lead score (0-100); see LeadScoringService. Null until first scored.
+  leadScore          Int?
+  leadScoreRationale String?
+  leadScoredAt       DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   owner        User         @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: Restrict)
