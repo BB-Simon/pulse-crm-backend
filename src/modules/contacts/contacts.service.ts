@@ -33,6 +33,15 @@ export class ContactsService {
       organizationId: user.organizationId,
       ...(query.tag ? { tags: { has: query.tag } } : {}),
       ...this.resolveOwnerFilter(user, query.ownerId),
+      ...(query.search
+        ? {
+            OR: [
+              { firstName: { contains: query.search, mode: 'insensitive' } },
+              { lastName: { contains: query.search, mode: 'insensitive' } },
+              { email: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
 
     const [rows, total] = await Promise.all([

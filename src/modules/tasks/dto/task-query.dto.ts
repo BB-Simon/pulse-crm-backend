@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { ToBoolean } from '../../../common/decorators/to-boolean.decorator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 
 export class TaskQueryDto extends PaginationQueryDto {
@@ -23,7 +23,7 @@ export class TaskQueryDto extends PaginationQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Type(() => Boolean)
+  @ToBoolean()
   @IsBoolean()
   completed?: boolean;
 }

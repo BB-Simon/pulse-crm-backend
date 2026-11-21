@@ -7,6 +7,11 @@ import { PublicApiModule } from './modules/public-api/public-api.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
+  app.enableCors({
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    credentials: true,
+  });
+
   configureApp(app);
 
   const swaggerConfig = new DocumentBuilder()
@@ -64,7 +69,7 @@ async function bootstrap() {
   );
   SwaggerModule.setup('public/docs', app, publicSwaggerDocument);
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env.PORT ?? 5000;
   await app.listen(port);
 }
 bootstrap();

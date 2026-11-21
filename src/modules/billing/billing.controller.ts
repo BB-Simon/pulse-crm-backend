@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   HttpStatus,
@@ -16,6 +17,7 @@ import {
   ApiExcludeEndpoint,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -31,12 +33,39 @@ import type { AuthenticatedUser } from '../../common/interfaces/authenticated-us
 import { BillingService } from './billing.service';
 import { CheckoutSessionResponseDto } from './dto/checkout-session-response.dto';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { PlanCatalogEntryDto } from './dto/plan-catalog-entry.dto';
 import { PortalSessionResponseDto } from './dto/portal-session-response.dto';
+import { SubscriptionSummaryDto } from './dto/subscription-summary.dto';
 
 @ApiTags('billing')
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
+
+  @Get('subscription')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: "Get the organization's current plan, status, and usage",
+  })
+  @ApiOkResponse({ type: SubscriptionSummaryDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiNotFoundResponse({ description: 'No subscription found' })
+  getSubscription(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<SubscriptionSummaryDto> {
+    return this.billingService.getSubscriptionSummary(user);
+  }
+
+  @Get('plans')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List the available subscription plans' })
+  @ApiOkResponse({ type: PlanCatalogEntryDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  getPlans(): PlanCatalogEntryDto[] {
+    return this.billingService.getPlanCatalog();
+  }
 
   @Post('checkout-session')
   @ApiBearerAuth()

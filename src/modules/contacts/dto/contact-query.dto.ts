@@ -3,6 +3,14 @@ import { IsOptional, IsString } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 
 export class ContactQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({
+    description: 'Search by first name, last name, or email',
+    example: 'jane',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
   @ApiPropertyOptional({ description: 'Filter by tag', example: 'vip' })
   @IsOptional()
   @IsString()

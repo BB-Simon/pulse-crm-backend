@@ -41,6 +41,17 @@ export class PlanLimitsService {
     }
   }
 
+  async getUsageSummary(
+    organizationId: string,
+    subscription: Subscription,
+  ): Promise<{ seats: UsageSnapshot; contacts: UsageSnapshot }> {
+    const [seats, contacts] = await Promise.all([
+      this.getUsage(organizationId, PlanLimitResource.SEATS, subscription),
+      this.getUsage(organizationId, PlanLimitResource.CONTACTS, subscription),
+    ]);
+    return { seats, contacts };
+  }
+
   private async getUsage(
     organizationId: string,
     resource: PlanLimitResource,

@@ -69,8 +69,8 @@ model Organization {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   users          User[]
   contacts       Contact[]
@@ -84,6 +84,8 @@ model Organization {
   notifications  Notification[]
   webhooks       Webhook[]
   apiKeys        ApiKey[]
+
+  @@map("organizations")
 }
 
 // ─────────────────────────────────────────────

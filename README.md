@@ -57,18 +57,25 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Deployment
+## CI
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Every PR to `main` runs lint, unit tests, e2e tests (against real Postgres/Redis service containers), a production build, and a Docker build — see `.github/workflows/ci.yml`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Docker
+
+A multi-stage production `Dockerfile` builds a minimal runtime image and runs `prisma migrate deploy` on startup before starting the server (see `docker-entrypoint.sh`).
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+$ docker build -t pulsecrm-backend .
+$ docker run -p 3000:3000 \
+    -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
+    -e REDIS_URL="redis://host:6379" \
+    -e JWT_SECRET="..." \
+    -e JWT_REFRESH_SECRET="..." \
+    pulsecrm-backend
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+See `.env.example` for the full list of environment variables (Stripe/Resend/Anthropic keys are optional — those features degrade gracefully when unset).
 
 ## Resources
 

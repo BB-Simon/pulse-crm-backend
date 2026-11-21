@@ -13,11 +13,18 @@ import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.in
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckoutSessionResponseDto } from './dto/checkout-session-response.dto';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { PlanCatalogEntryDto } from './dto/plan-catalog-entry.dto';
 import { PortalSessionResponseDto } from './dto/portal-session-response.dto';
+import { SubscriptionSummaryDto } from './dto/subscription-summary.dto';
 import { PLAN_CATALOG, PLAN_ORDER } from './plan-catalog';
+import { PlanLimitsService } from './plan-limits.service';
 import { STRIPE_CLIENT } from './stripe-client.token';
 
 const DEFAULT_FRONTEND_URL = 'http://localhost:5173';
+const RESTRICTED_STATUSES = new Set<SubscriptionStatus>([
+  SubscriptionStatus.PAST_DUE,
+  SubscriptionStatus.CANCELED,
+]);
 
 @Injectable()
 export class BillingService {
@@ -26,8 +33,56 @@ export class BillingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly planLimitsService: PlanLimitsService,
     @Inject(STRIPE_CLIENT) private readonly stripe: Stripe,
   ) {}
+
+  async getSubscriptionSummary(
+    user: AuthenticatedUser,
+  ): Promise<SubscriptionSummaryDto> {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { organizationId: user.organizationId },
+    });
+    if (!subscription) {
+      throw new NotFoundException(
+        'No subscription found for this organization',
+      );
+    }
+
+    const { seats, contacts } = await this.planLimitsService.getUsageSummary(
+      user.organizationId,
+      subscription,
+    );
+
+    return {
+      plan: subscription.plan,
+      planName: PLAN_CATALOG[subscription.plan].name,
+      status: subscription.status,
+      seatLimit: seats.limit,
+      seatsUsed: seats.used,
+      contactLimit: contacts.limit,
+      contactsUsed: contacts.used,
+      currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+      isTrialing: subscription.status === SubscriptionStatus.TRIALING,
+      isReadOnly: RESTRICTED_STATUSES.has(subscription.status),
+      hasBillingAccount: Boolean(subscription.stripeCustomerId),
+    };
+  }
+
+  getPlanCatalog(): PlanCatalogEntryDto[] {
+    return PLAN_ORDER.map((plan) => {
+      const definition = PLAN_CATALOG[plan];
+      return {
+        plan: definition.key,
+        name: definition.name,
+        description: definition.description,
+        pricePerSeatCents: definition.pricePerSeatCents,
+        currency: definition.currency,
+        seatLimit: definition.seatLimit,
+        contactLimit: definition.contactLimit,
+      };
+    });
+  }
 
   async createCheckoutSession(
     user: AuthenticatedUser,
