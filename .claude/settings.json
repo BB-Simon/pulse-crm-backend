@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint*)",
+      "Bash(npm run build)",
+      "Bash(npm run format)",
+      "Bash(npm test*)",
+      "Bash(npm run test*)",
+      "Bash(npx jest *)",
+      "Bash(npx prisma generate)",
+      "Bash(npx prisma validate)",
+      "Bash(npx prisma format)",
+      "Bash(npx prisma migrate status)",
+      "Bash(openspec *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(docker compose ps*)",
+      "Bash(docker compose logs*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)"
+    ],
+    "ask": [
+      "Bash(npx prisma migrate dev*)",
+      "Bash(npx prisma db push*)",
+      "Bash(npm install*)",
+      "Bash(npm uninstall*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git checkout*)",
+      "Bash(docker compose up*)",
+      "Bash(docker compose down*)",
+      "Bash(npm run stripe:setup-plans)",
+      "Bash(npm run notifications:test-enqueue)",
+      "Bash(gh pr create*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Edit(./.env)",
+      "Bash(npx prisma migrate reset*)",
+      "Bash(npx prisma db push --force-reset*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf *)",
+      "Bash(docker compose down -v*)"
+    ]
+  }
+}
